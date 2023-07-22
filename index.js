@@ -24,12 +24,18 @@ const { isAuth, sanitizeUser, cookieExtractor } = require('./services/common');
 const path = require('path');
 const SECRET_KEY =process.env.SECRET_KEY ||'SECRET_KEY' ;
 // JWT options
-
+//cors
+server.use(
+  cors({
+     origin: 'https://ecommerce-frontend-lovat-chi.vercel.app',
+    exposedHeaders: ['X-Total-Count'],
+    preflightContinue: true,
+  })
+);
 
 const opts = {};
 opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY; // TODO: should not be in code;
-
 //middlewares
 server.use(
   cors({
@@ -46,7 +52,8 @@ server.use(
     saveUninitialized: false, // don't create session until something stored
   })
 );
-server.use(passport.authenticate('session'));
+server.use(passport.authenticate('session'))
+server.options('*', cors());
 server.use(express.json()); 
 
 server.use('/products', isAuth(), productsRouter.router);
@@ -136,7 +143,6 @@ passport.deserializeUser(function (user, cb) {
 main().catch((err) => console.log(err));
 
 async function main() {
-  console.log( process.env.MONGO_CONNECTION_URL)
   await mongoose.connect( process.env.MONGO_CONNECTION_URL , { useNewUrlParser: true, 
     useUnifiedTopology: true}).then(()=>{
         console.log('Database connected');
