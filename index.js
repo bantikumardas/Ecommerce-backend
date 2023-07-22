@@ -29,7 +29,7 @@ const SECRET_KEY =process.env.SECRET_KEY ||'SECRET_KEY' ;
 const opts = {};
 opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY; // TODO: should not be in code;
-app.use(cors());
+server.use(cors());
 //middlewares
 
 server.use(express.static('build'))
