@@ -24,12 +24,17 @@ const { isAuth, sanitizeUser, cookieExtractor } = require('./services/common');
 
 const SECRET_KEY =process.env.SECRET_KEY ||'SECRET_KEY' ;
 // JWT options
-
+//cors
+server.use(
+  cors({
+    origin: 'https://ecommerce-frontend-lovat-chi.vercel.app/signup',
+    exposedHeaders: ['X-Total-Count'],
+  })
+);
 
 const opts = {};
 opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY; // TODO: should not be in code;
-server.use(cors());
 //middlewares
 
 server.use(express.static('build'))
@@ -42,11 +47,7 @@ server.use(
   })
 );
 server.use(passport.authenticate('session'));
-server.use(
-  cors({
-    exposedHeaders: ['X-Total-Count'],
-  })
-);
+
 server.options('*', cors());
 server.use(express.json()); 
 server.use('/products', isAuth(), productsRouter.router);
