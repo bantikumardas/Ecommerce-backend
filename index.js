@@ -21,7 +21,7 @@ const cartRouter = require('./routes/Cart');
 const ordersRouter = require('./routes/Order');
 const { User } = require('./model/User');
 const { isAuth, sanitizeUser, cookieExtractor } = require('./services/common');
-
+const path = require('path');
 const SECRET_KEY =process.env.SECRET_KEY ||'SECRET_KEY' ;
 // JWT options
 
@@ -31,8 +31,13 @@ opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY; // TODO: should not be in code;
 
 //middlewares
-
-server.use(express.static('build'))
+server.use(
+  cors({
+    exposedHeaders: ['X-Total-Count'],
+  })
+);
+server.options('*', cors());
+server.use(express.static(path.resolve(__dirname, 'build')));
 server.use(cookieParser());
 server.use(
   session({
@@ -42,13 +47,8 @@ server.use(
   })
 );
 server.use(passport.authenticate('session'));
-server.use(
-  cors({
-    exposedHeaders: ['X-Total-Count'],
-  })
-);
-server.options('*', cors());
 server.use(express.json()); 
+
 server.use('/products', isAuth(), productsRouter.router);
 server.use('/categories', isAuth(), categoriesRouter.router);
 server.use('/brands', isAuth(), brandsRouter.router);
@@ -56,6 +56,10 @@ server.use('/users', isAuth(), usersRouter.router);
 server.use('/auth', authRouter.router);
 server.use('/cart', isAuth(), cartRouter.router);
 server.use('/orders', isAuth(), ordersRouter.router);
+
+server.get('*', (req, res) =>
+  res.sendFile(path.resolve('build', 'index.html'))
+);
 
 // Passport Strategies
 passport.use(
@@ -66,8 +70,9 @@ passport.use(
     // by default passport uses username
     try {
       const user = await User.findOne({ email: email });
-      console.log(email, password, user);
+      console.log(email, password, user)
       if (!user) {
+        console.log("error 404")
         return done(null, false, { message: 'invalid credentials' }); // for safety
       }
       crypto.pbkdf2(
@@ -78,6 +83,7 @@ passport.use(
         'sha256',
         async function (err, hashedPassword) {
           if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
+            console.log("error 120")
             return done(null, false, { message: 'invalid credentials' });
           }
           const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
@@ -85,6 +91,7 @@ passport.use(
         }
       );
     } catch (err) {
+      console.log("error 110")
       done(err);
     }
   })
@@ -99,9 +106,11 @@ passport.use(
       if (user) {
         return done(null, sanitizeUser(user)); // this calls serializer
       } else {
+        console.log("error 200")
         return done(null, false);
       }
     } catch (err) {
+      console.log("error 210")
       return done(err, false);
     }
   })
@@ -138,5 +147,5 @@ async function main() {
 }
 const PORT=process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log('server started');
+  console.log(`server started at port ${PORT}`);
 });

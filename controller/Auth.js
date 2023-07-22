@@ -20,6 +20,7 @@ exports.createUser = async (req, res) => {
         req.login(sanitizeUser(doc), (err) => {
           // this also calls serializer and adds to session
           if (err) {
+            console.log("error 190")
             res.status(400).json(err);
           } else {
             const token = jwt.sign(sanitizeUser(doc), SECRET_KEY);
@@ -35,13 +36,15 @@ exports.createUser = async (req, res) => {
       }
     );
   } catch (err) {
+    console.log("error 180")
     res.status(400).json(err);
   }
 };
 
 exports.loginUser = async (req, res) => {
   const user = req.user;
-  console.log(user);
+  const data=await User.findOne({email:user.email});
+  console.log(user)
   const token =jwt.sign(sanitizeUser(user), SECRET_KEY);
   res
     .cookie('jwt', token, {
@@ -56,6 +59,7 @@ exports.checkAuth = async (req, res) => {
   if(req.user){
     res.json(req.user);
   } else{
+    console.log("error 170")
     res.sendStatus(401);
   }
 };
