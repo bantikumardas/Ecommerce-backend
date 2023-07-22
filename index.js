@@ -27,8 +27,9 @@ const SECRET_KEY =process.env.SECRET_KEY ||'SECRET_KEY' ;
 //cors
 server.use(
   cors({
-    origin: 'https://ecommerce-frontend-lovat-chi.vercel.app/signup',
+     origin: 'https://ecommerce-frontend-lovat-chi.vercel.app',
     exposedHeaders: ['X-Total-Count'],
+    preflightContinue: true,
   })
 );
 
