@@ -22,14 +22,12 @@ const ordersRouter = require('./routes/Order');
 const { User } = require('./model/User');
 const { isAuth, sanitizeUser, cookieExtractor } = require('./services/common');
 const path = require('path');
-const SECRET_KEY =process.env.SECRET_KEY ||'SECRET_KEY' ;
+const SECRET_KEY = process.env.SECRET_KEY || 'SECRET_KEY';
 // JWT options
 //cors
 server.use(
   cors({
-     origin: 'https://ecommerce-frontend-lovat-chi.vercel.app',
     exposedHeaders: ['X-Total-Count'],
-    preflightContinue: true,
   })
 );
 
@@ -42,7 +40,6 @@ server.use(
     exposedHeaders: ['X-Total-Count'],
   })
 );
-server.options('*', cors());
 server.use(express.static(path.resolve(__dirname, 'build')));
 server.use(cookieParser());
 server.use(
@@ -54,7 +51,7 @@ server.use(
 );
 server.use(passport.authenticate('session'))
 server.options('*', cors());
-server.use(express.json()); 
+server.use(express.json());
 
 server.use('/products', isAuth(), productsRouter.router);
 server.use('/categories', isAuth(), categoriesRouter.router);
@@ -72,36 +69,36 @@ server.get('*', (req, res) =>
 passport.use(
   'local',
   new LocalStrategy(
-    {usernameField:'email'},
+    { usernameField: 'email' },
     async function (email, password, done) {
-    // by default passport uses username
-    try {
-      const user = await User.findOne({ email: email });
-      console.log(email, password, user)
-      if (!user) {
-        console.log("error 404")
-        return done(null, false, { message: 'invalid credentials' }); // for safety
-      }
-      crypto.pbkdf2(
-        password,
-        user.salt,
-        310000,
-        32,
-        'sha256',
-        async function (err, hashedPassword) {
-          if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
-            console.log("error 120")
-            return done(null, false, { message: 'invalid credentials' });
-          }
-          const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
-          done(null, {id:user.id, role:user.role}); // this lines sends to serializer
+      // by default passport uses username
+      try {
+        const user = await User.findOne({ email: email });
+        console.log(email, password, user)
+        if (!user) {
+          console.log("error 404")
+          return done(null, false, { message: 'invalid credentials' }); // for safety
         }
-      );
-    } catch (err) {
-      console.log("error 110")
-      done(err);
-    }
-  })
+        crypto.pbkdf2(
+          password,
+          user.salt,
+          310000,
+          32,
+          'sha256',
+          async function (err, hashedPassword) {
+            if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
+              console.log("error 120")
+              return done(null, false, { message: 'invalid credentials' });
+            }
+            const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
+            done(null, { id: user.id, role: user.role }); // this lines sends to serializer
+          }
+        );
+      } catch (err) {
+        console.log("error 110")
+        done(err);
+      }
+    })
 );
 
 passport.use(
@@ -143,15 +140,17 @@ passport.deserializeUser(function (user, cb) {
 main().catch((err) => console.log(err));
 
 async function main() {
-  await mongoose.connect( process.env.MONGO_CONNECTION_URL , { useNewUrlParser: true, 
-    useUnifiedTopology: true}).then(()=>{
-        console.log('Database connected');
-    }).catch((err)=>{
-        console.log("not connected");
-        console.log(err);
-    });
+  await mongoose.connect(process.env.MONGO_CONNECTION_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }).then(() => {
+    console.log('Database connected');
+  }).catch((err) => {
+    console.log("not connected");
+    console.log(err);
+  });
 }
-const PORT=process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`server started at port ${PORT}`);
 });
